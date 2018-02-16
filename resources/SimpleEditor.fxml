@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+
+<fx:root fx:id="root_pane" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="461.0" prefWidth="619.0" xmlns="http://javafx.com/javafx/9.0.1" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Pane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <Button fx:id="LoadHum" layoutX="140.0" layoutY="83.0" mnemonicParsing="false" onAction="#LoadHum" text="Load Hum..." />
+            <Slider fx:id="LowPitch" layoutX="118.0" layoutY="231.0" value="50.0" />
+            <Slider fx:id="HighPitch" layoutX="359.0" layoutY="231.0" value="50.0" />
+            <Button fx:id="Swing" layoutX="155.0" layoutY="327.0" mnemonicParsing="false" onAction="#PlaySwing" text="Swing" />
+            <Button fx:id="Spin" layoutX="278.0" layoutY="327.0" mnemonicParsing="false" onAction="#PlaySpin" text="Spin" />
+            <Button fx:id="SwingClash" layoutX="383.0" layoutY="327.0" mnemonicParsing="false" onAction="#PlayClash" text="Swing Clash" />
+            <Button fx:id="LoadClash" layoutX="367.0" layoutY="83.0" mnemonicParsing="false" onAction="#LoadClash" text="Load Clash..." />
+            <Label layoutX="165.0" layoutY="202.0" text="Low Pitch" />
+            <Label layoutX="395.0" layoutY="202.0" text="High Pitch" />
+         </children>
+      </Pane>
+   </children>
+</AnchorPane>
+</fx:root>
