@@ -60,4 +60,28 @@ public class Quaternion {
 	public Quaternion getRotationQuaternion(Quaternion q) {
 		return this.product(q.getConjugate());
 	}
+	
+	
+	public void add(Quaternion v) {
+		w += v.w;
+		x += v.x;
+		y += v.y;
+		z += v.z;
+	}
+	
+	public void scale(double s) {
+		w*=s;
+		x*=s;
+		y*=s;
+		z*=s;
+	}
+	
+	static public Quaternion average(Quaternion[] vs) {
+		Quaternion av = new Quaternion();
+		for (Quaternion v : vs) {
+			av.add(v);
+		}
+		av.scale(1.0/(double)vs.length);
+		return av;
+	}
 }
