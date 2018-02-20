@@ -42,7 +42,7 @@ public class SimpleEditor  extends AnchorPane  {
 			throw new RuntimeException(exception);
 		}
 		pitcher= new WavPitcher();
-		HumWav = new File("D:\\Users\\chris\\eclipse-workspace\\LuxGladioWavEditor\\resources\\hum.wav");
+		HumWav = new File("./bin/hum.wav");
 	}
 	
 	@FXML

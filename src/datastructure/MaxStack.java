@@ -1,30 +1,36 @@
 package datastructure;
 
+import java.lang.reflect.Array;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MaxStack<T> {
 
 	private int maxlength;
 	
-	private LinkedList<T> list; 
+	private ConcurrentLinkedQueue<T> list; 
 	
 	public MaxStack(int maxlength){
 		this.maxlength= maxlength;
-		list = new LinkedList<T>();
+		list = new ConcurrentLinkedQueue<T>();
 	}
 	
 	public void Add(T obj) {
-		
-		list.addLast(obj);
+		list.add(obj);
 		if(list.size() > maxlength ) {
-			list.removeFirst();
+			list.poll();
 		}
 	}
 	
 	
-	@SuppressWarnings("unchecked")
-	public T[] toArray() {
-		return (T[])list.toArray();
+	public List<T> PollList(){
+		LinkedList<T> llist = new LinkedList<T>();
+		int i = 0;
+		while(!list.isEmpty() || i>maxlength) {
+		llist.add(list.remove());
+		}
+		return llist;
 	}
 	
 	public int length(){

@@ -10,21 +10,35 @@ public class SerialComm {
   static OutputStream out;
   static BufferedReader reader;
   static String comPort;
+  static boolean isReady;
 
   public SerialComm(String ComPort){
 	 comPort = ComPort;
-	  
+	  isReady = false;
+  }
+  
+  public static String[] AvailablePorts() {
+	 
+	 SerialPort[] ports = SerialPort.getCommPorts();
+	 String[] portNames = new String[ports.length];
+	 
+	 for (int i = 0; i < portNames.length; i++) {
+		portNames[i] = ports[i].getSystemPortName();
+	}
+	 return portNames;
+  }
+  
+  public boolean isReady() {
+	  return isReady;
   }
   
   public boolean Open() {
 	  
 	  
-	  port = SerialPort.getCommPorts()[1];
+	  port = SerialPort.getCommPorts()[0];
 	  port.openPort();
 	  if (port.isOpen()) {
-		    System.out.println("Port initialized!");
-		    //timeout not needed for event based reading
-		    //userPort.setComPortTimeouts(SerialPort.TIMEOUT_READ_SEMI_BLOCKING, 100, 0);
+		   
 		    } else {
 		    System.out.println("Port not available");
 		    return false;
@@ -32,7 +46,19 @@ public class SerialComm {
 	  port.setBaudRate(115200);
 	  
 	  reader = new BufferedReader(new InputStreamReader(port.getInputStream()));
+	  isReady= true;
+	  while(true) {
+		  if(HasData()) {
+			  String line = ReadLine();
+			  if(line.endsWith("Enabling DMP...")) {
+				  break;
+			  }else {
+				  System.out.println(line);
+			  }
+		  }
+	  }
 	  return true;
+	  
   }
   
   public boolean HasData() {
@@ -53,6 +79,7 @@ public class SerialComm {
 	  OutputStream stream =  port.getOutputStream();
 		try {
 			stream.write(s.getBytes());
+			stream.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -67,7 +94,9 @@ public class SerialComm {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+	  isReady = false;
 	  return port.closePort();
+	  
   }
   
 }

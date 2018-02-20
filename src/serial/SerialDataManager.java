@@ -1,8 +1,14 @@
 package serial;
 
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import javax.xml.stream.events.EntityDeclaration;
 
 import datastructure.MaxStack;
+import javafx.concurrent.Task;
 import math.Quaternion;
 import math.Vector3;
 
@@ -35,9 +41,17 @@ public class SerialDataManager {
 	private long firstTime;
 	private boolean hasTime;
 	
+	private MaxStack<Long> times;
+	
+	
 	int maxData;
 	
-	SerialDataManager(int max_datapoints){
+	boolean isRunning;
+	Runnable task;
+	Thread thread;
+	ExecutorService executor;
+	
+	public SerialDataManager(int max_datapoints){
 		
 		comm = new SerialComm("COM3");
 		
@@ -47,17 +61,29 @@ public class SerialDataManager {
 	
 	public void startRecording(EDataType[] types) {
 		
-		if(isRecording){return;}
+		if(comm.Open()){
 		
-		if(!comm.Open()) {
-			return;
+			int i = 0;
+		while(!comm.isReady()){
+			if(i++>10000) {
+				break;
+			}
 		}
-		SendDataTypeListening(EDataType.None);
+		
+		//SendDataTypeListening(EDataType.None);
 		for (EDataType type : types) {
 			SendDataTypeListening(type);
 		}
 		resetValues();
+		
+		task = () -> {
+		    loop();
+		};
+		isRunning = true;
+		startThread();
+		}
 	}
+	
 	
 	private void resetValues() {
 		euler = new MaxStack<Vector3>(maxData);
@@ -71,22 +97,41 @@ public class SerialDataManager {
 		worldDif = new MaxStack<Vector3>(maxData);
 		realDif = new MaxStack<Vector3>(maxData);
 		yprDif = new MaxStack<Vector3>(maxData);
+		
+		eulerPrev = new Vector3();
+		quatPrev = new Quaternion();
+		worldPrev = new Vector3();
+		realPrev = new Vector3();
+		yprPrev = new Vector3();
+		
 		hasTime = false;
 		firstTime = 0;
+		
+		executor = Executors.newSingleThreadExecutor();
 		
 	}
 
 	public void loop() {
-		while(comm.HasData()) {
-			String[] s = SerialParser.splitWhiteSpace(comm.ReadLine());
+		if(isRunning) {
+		if(comm.HasData()) {
 			
+			String[] s = SerialParser.splitWhiteSpace(comm.ReadLine());
+			Vector3 cur;
 			switch (EDataType.GetType(s[0].charAt(0))) {
 			
 			case  Time:
 				
+				long curTime = SerialParser.parseLong(s[1]);
+				
+				if(!hasTime) {
+					hasTime = true;
+					firstTime = curTime;
+				}
+				times.Add(firstTime - curTime);
+				break;
 			
 			case Euler:
-				Vector3 cur = SerialParser.parseVector(s[1], s[2], s[3]);
+				cur = SerialParser.parseVector(s[1], s[2], s[3]);
 				euler.Add(cur);
 				eulerDif.Add(Vector3.sub(cur,eulerPrev));
 				eulerPrev = cur;
@@ -96,7 +141,7 @@ public class SerialDataManager {
 			case Quaternion:
 				Quaternion curQ = SerialParser.parseQuaternion(s[1], s[2], s[3], s[4]);
 				quat.Add((curQ));
-				quatDif.Add(quatPrev.product(curQ));
+				quatDif.Add(quatPrev.getRotationQuaternion(curQ));
 				quatPrev =  curQ;
 				break;
 			case RealAcceleration:
@@ -122,16 +167,29 @@ public class SerialDataManager {
 			
 			}
 		}
+		startThread();
+		}
+	}
+	
+	private void startThread() {
+		 executor.submit(task);
 	}
 	
 	
-	
 	public void stopRecording() {
+		isRunning = false;
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		SendDataTypeListening(EDataType.None);
 		comm.Close();
 	}
 	
 	private void SendDataTypeListening(EDataType type) {
+		System.out.println(type);
 		switch (type) {
 		
 		case None:
@@ -157,6 +215,37 @@ public class SerialDataManager {
 		}
 		
 	}
+
+	public List<Vector3> getEuler() {
+		return euler.PollList();
+		
+	}
 	
+	public List<Vector3> getEulerDiff() {
+		
+		return eulerDif.PollList();
+		
+	}
+
+	public List<Quaternion> getQuaternionDiff() {
+		// TODO Auto-generated method stub
+		return quatDif.PollList();
+	}
+	
+	public List<Quaternion> getQuaternion() {
+		// TODO Auto-generated method stub
+		return quat.PollList();
+	}
+	
+	public List<Vector3> getWorld() {
+		return world.PollList();
+		
+	}
+	
+	public List<Vector3> getWorlDiff() {
+		
+		return worldDif.PollList();
+		
+	}
 	
 }

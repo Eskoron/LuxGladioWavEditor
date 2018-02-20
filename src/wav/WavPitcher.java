@@ -37,10 +37,12 @@ public class WavPitcher {
 	private RateTransposer rateTransposer;
 	private double sampleRate;
 	private boolean loop;
+	private boolean stop;
 
 	public WavPitcher(){
 		gain = new GainProcessor(1.0);
-		
+		stop = true;
+		loop = false;
 	}
 	
 	public static double centToFactor(double cents){
@@ -55,12 +57,31 @@ public class WavPitcher {
 		gain.setGain(BMath.clamp(gainValue,0.0f,4.0f));
 	}
 	
+	public void SetLoop(boolean doLoop) {
+		loop= doLoop;
+	}
 	
+	public void Stop() {
+		stop = true;
+		if(dispatcher != null){
+		dispatcher.stop();
+		}
+	}
+	
+	public void playFile(final String inputFilePath,double pitchFactor){
+		playFile(new File(inputFilePath),pitchFactor);
+	}
+	
+	public boolean isPlaying() {
+		return !stop;
+	}
 	
 	
 	public void playFile(final File inputFile,double pitchFactor){
 		
+		stop = false;
 		if(dispatcher != null){
+			loop = false;
 			dispatcher.stop();
 		}
 		AudioFormat format;
@@ -99,12 +120,20 @@ public class WavPitcher {
 					dispatcher =null;
 					playFile(inputFile,pitchFactor);
 					}
+					else {
+						stop = true;
+					}
 					
 				}
 				
+				
 				@Override
 				public boolean process(AudioEvent audioEvent) {
-					return true;
+					if(stop) {
+					
+					loop = false;
+					}
+					return !stop;
 				}
 			});
 
